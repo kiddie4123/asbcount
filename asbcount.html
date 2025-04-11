@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asbestos Counter</title>
+    <style>
+        /* Basic Reset & Mobile First */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            padding: 15px;
+            background-color: #f4f4f4;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 900px; /* Max width for larger screens */
+            margin: 20px auto; /* Center on larger screens with some margin */
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #444;
+        }
+        h1 { font-size: 1.8em; }
+        h2 { font-size: 1.4em; color: #555; margin-top: 30px; }
+
+
+        /* Form Styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Single column on mobile */
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%; /* Full width */
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .form-group input:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .form-group input[type="number"] {
+            appearance: textfield; /* Firefox */
+        }
+        .form-group input[type="number"]::-webkit-outer-spin-button, /* Chrome, Safari, Edge, Opera */
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .form-group input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+             transform: scale(1.3); /* Slightly larger checkbox */
+             margin-right: 5px;
+             accent-color: #007bff; /* Color the checkbox */
+        }
+         .checkbox-group label {
+            font-weight: normal;
+            font-size: 0.9rem;
+            margin-bottom: 0; /* Override form-group margin */
+            color: #333;
+         }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            width: 100%; /* Full width buttons */
+            text-align: center;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:active {
+             transform: scale(0.98);
+        }
+
+        button.remove-btn {
+            background-color: #dc3545;
+            margin-top: 15px; /* Space above remove button */
+        }
+        button.remove-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Results Display */
+        .results-display {
+            margin-top: 25px;
+            padding: 18px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .results-display p {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            word-wrap: break-word; /* Prevent long results overflowing */
+        }
+        .results-display #result-evaluation {
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            margin-top: 10px;
+            font-size: 1.15rem;
+        }
+        .result-pass { background-color: #28a745; }
+        .result-fail { background-color: #dc3545; }
+        .result-pending { background-color: #6c757d; }
+
+
+        /* Sample Table */
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto; /* Allow horizontal scrolling on small screens */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px; /* Prevent excessive squashing, adjust as needed */
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem; /* Smaller font for table */
+            white-space: nowrap; /* Prevent wrapping */
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #e9ecef;
+            font-weight: 600;
+            color: #495057;
+            position: sticky; /* Make header sticky */
+            top: 0; /* Stick to the top of the container */
+            z-index: 1;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background-color: #e2e6ea;
+        }
+
+        td input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+            accent-color: #007bff;
+        }
+        td:first-child, th:first-child {
+            text-align: center; /* Center checkbox column */
+        }
+
+        /* Responsive Adjustments for Larger Screens */
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr); /* Two columns for form */
+                gap: 20px 25px; /* Row gap, Column gap */
+            }
+
+            .button-group {
+                flex-direction: row; /* Buttons side-by-side */
+                justify-content: space-evenly;
+            }
+
+            button {
+                width: auto; /* Auto width for buttons */
+                flex-basis: 48%; /* Approx half width */
+            }
+            button.remove-btn {
+                 width: 100%; /* Make remove button full width below table */
+                 margin-top: 20px;
+            }
+        }
+         @media (min-width: 992px) {
+             .container { padding: 30px; }
+             h1 { font-size: 2em; }
+             h2 { font-size: 1.6em; }
+         }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Asbestos Fiber Counter</h1>
+
+        <section>
+            <h2>Sample Input</h2>
+            <form id="sample-form" class="form-grid" onsubmit="return false;"> <div class="form-group">
+                    <label for="sample-name">Sample Name:</label>
+                    <input type="text" id="sample-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="sample-location">Sample Location:</label>
+                    <input type="text" id="sample-location" required>
+                </div>
+                <div class="form-group">
+                    <label for="sample-date">Sample Date:</label>
+                    <input type="date" id="sample-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="volume">Volume (L):</label>
+                    <input type="number" id="volume" step="any" min="0.0001" required placeholder="e.g., 1200">
+                </div>
+                <div class="form-group">
+                    <label for="fibers">Fibers Counted:</label>
+                    <input type="number" id="fibers" step="any" min="0" required placeholder="e.g., 25.5">
+                </div>
+                <div class="form-group">
+                    <label for="fields">Fields Counted:</label>
+                    <input type="number" id="fields" step="1" min="1" required placeholder="e.g., 100">
+                </div>
+                 <div class="form-group">
+                    <label for="lod">LOD (fib/cc):</label>
+                    <input type="number" id="lod" step="any" min="0" value="0.0022" readonly>
+                     <div class="checkbox-group">
+                        <input type="checkbox" id="change-lod">
+                        <label for="change-lod">Change LOD</label>
+                     </div>
+                </div>
+            </form>
+             <div class="button-group">
+                 <button type="button" id="check-button">Check Sample</button>
+                 <button type="button" id="add-button">Add to Table</button>
+            </div>
+        </section>
+
+        <section class="results-display">
+            <h2>Current Sample Results</h2>
+            <p id="fibers-mm2-result">Fibers/mm²: -</p>
+            <p id="fibers-cc-result">Fibers/cc: -</p>
+            <p id="result-evaluation" class="result-pending">Sample evaluation: Pending</p>
+        </section>
+
+        <section>
+            <h2>Added Samples</h2>
+            <div class="table-container">
+                <table id="sample-table">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Sample</th>
+                            <th>Location</th>
+                            <th>Date</th>
+                            <th>Volume (L)</th>
+                            <th>Fibers</th>
+                            <th>Fields</th>
+                            <th>LOD</th>
+                            <th>Fibers/mm²</th>
+                            <th>Fibers/cc</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sample-table-body">
+                        </tbody>
+                </table>
+            </div>
+             <button type="button" id="remove-button" class="remove-btn">Remove Selected Samples</button>
+        </section>
+
+    </div> <script>
+        // --- Constants ---
+        const efa = 385;  // Effective filter area in mm²
+        const fov = 0.00785; // Field of view area in mm²
+        const threshold = 0.01; // Pass/Fail threshold in Fibers/cc
+        const defaultLod = 0.0022;
+
+        // --- Global State ---
+        let sampleList = [];
+        let currentSample = {}; // Holds data of the currently calculated sample
+
+        // --- DOM Elements ---
+        const sampleNameInput = document.getElementById('sample-name');
+        const sampleLocationInput = document.getElementById('sample-location');
+        const sampleDateInput = document.getElementById('sample-date');
+        const volumeInput = document.getElementById('volume');
+        const fibersInput = document.getElementById('fibers');
+        const fieldsInput = document.getElementById('fields');
+        const lodInput = document.getElementById('lod');
+        const changeLodCheckbox = document.getElementById('change-lod');
+        const checkButton = document.getElementById('check-button');
+        const addButton = document.getElementById('add-button');
+        const removeButton = document.getElementById('remove-button');
+        const sampleTableBody = document.getElementById('sample-table-body');
+        const fibersMm2Result = document.getElementById('fibers-mm2-result');
+        const fibersCcResult = document.getElementById('fibers-cc-result');
+        const resultEvaluation = document.getElementById('result-evaluation');
+
+        // --- Utility Functions ---
+        function formatDate(dateString) {
+            // Input date is YYYY-MM-DD from <input type="date">
+            // Output MM/DD/YYYY for display consistency with original request
+             if (!dateString) return 'N/A';
+            try {
+                 // Handles potential timezone issues by creating date in UTC
+                 const date = new Date(dateString + 'T00:00:00Z');
+                 const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+                 const day = date.getUTCDate().toString().padStart(2, '0');
+                 const year = date.getUTCFullYear();
+                 return `${month}/${day}/${year}`;
+            } catch (e) {
+                 console.error("Error formatting date:", dateString, e);
+                 return dateString; // return original if parsing fails
+            }
+        }
+
+        // --- Core Calculation Logic ---
+        function calculateResults(volumeL, fibers, fields, lod) {
+             // Basic check for division by zero or invalid inputs for calculation
+            if (!fields || fields === 0 || !volumeL || volumeL === 0) {
+                 console.warn("Calculation skipped: Fields or Volume is zero or invalid.");
+                return { lod: lod, fibersPerMm2: NaN, fibersPerCc: NaN };
+            }
+            const volume_cc = volumeL * 1000;
+            const total_fields = efa / fov;
+            const fibers_per_field = fibers / fields;
+
+            const fibersPerMm2 = (fibers_per_field * total_fields) / efa;
+            const fibersPerCc = (fibers_per_field * total_fields) / volume_cc;
+
+            // Rounding as per original script
+            return {
+                lod: lod,
+                fibersPerMm2: Math.round(fibersPerMm2 * 10) / 10, // Round to 1 decimal place
+                fibersPerCc: Math.round(fibersPerCc * 10000) / 10000 // Round to 4 decimal places
+            };
+        }
+
+        function evaluateSample(fibersPerCc) {
+             if (isNaN(fibersPerCc)) return "Error"; // Handle NaN input explicitly
+            return fibersPerCc < threshold ? "Pass" : "Fail";
+        }
+
+        // --- Event Handlers ---
+        function handleCheckSample() {
+            // Clear previous current sample
+            currentSample = {};
+            // Reset result display immediately
+            fibersMm2Result.textContent = 'Fibers/mm²: -';
+            fibersCcResult.textContent = 'Fibers/cc: -';
+            resultEvaluation.textContent = 'Sample evaluation: Pending';
+            resultEvaluation.className = 'result-pending';
+
+
+            // Validate Inputs
+            const sampleName = sampleNameInput.value.trim();
+            const sampleLocation = sampleLocationInput.value.trim();
+            const sampleDate = sampleDateInput.value; // YYYY-MM-DD
+            const volumeStr = volumeInput.value;
+            const fibersStr = fibersInput.value;
+            const fieldsStr = fieldsInput.value;
+            const lodStr = lodInput.value;
+
+            // Check required fields
+            if (!sampleName || !sampleLocation || !sampleDate || volumeStr === '' || fibersStr === '' || fieldsStr === '' || lodStr === '') {
+                alert("Input Error: Please fill all fields.");
+                return;
+            }
+
+            // Parse numbers carefully
+            const volume = parseFloat(volumeStr);
+            const fibers = parseFloat(fibersStr);
+            const fields = parseInt(fieldsStr, 10); // Fields should be an integer
+            const lod = parseFloat(lodStr);
+
+             // Detailed number validation
+             let errorMessages = [];
+             if (isNaN(volume) || volume <= 0) errorMessages.push("Volume must be a positive number.");
+             if (isNaN(fibers) || fibers < 0) errorMessages.push("Fibers Counted cannot be negative.");
+             if (isNaN(fields) || fields <= 0 || !Number.isInteger(fields)) errorMessages.push("Fields Counted must be a positive whole number.");
+             if (isNaN(lod) || lod < 0) errorMessages.push("LOD cannot be negative.");
+
+             if(errorMessages.length > 0) {
+                 alert("Input Error:\n- " + errorMessages.join("\n- "));
+                 return;
+             }
+
+            // Calculate
+            const { fibersPerMm2, fibersPerCc } = calculateResults(volume, fibers, fields, lod);
+            const result = evaluateSample(fibersPerCc); // Evaluate function handles NaN
+
+            // Display Results
+            fibersMm2Result.textContent = `Fibers/mm²: ${isNaN(fibersPerMm2) ? 'Error' : fibersPerMm2}`;
+            fibersCcResult.textContent = `Fibers/cc: ${isNaN(fibersPerCc) ? 'Error' : fibersPerCc.toFixed(4)}`;
+            resultEvaluation.textContent = `Sample evaluation: ${result}`;
+
+            // Update result styling based on Pass/Fail/Error
+            resultEvaluation.className = ''; // Reset class first
+             if (result === "Pass") {
+                resultEvaluation.classList.add('result-pass');
+            } else if (result === "Fail") {
+                resultEvaluation.classList.add('result-fail');
+            } else {
+                 resultEvaluation.classList.add('result-pending'); // Use pending for error state too
+            }
+
+
+            // Store results temporarily only if calculations were successful
+             if (!isNaN(fibersPerCc)) {
+                currentSample = {
+                    id: Date.now() + Math.random(), // Simple unique ID for removal reference
+                    Sample: sampleName,
+                    Location: sampleLocation,
+                    Date: sampleDate, // Store as YYYY-MM-DD
+                    'Volume (L)': volume,
+                    Fibers: fibers,
+                    Fields: fields,
+                    'LOD (fib/cc)': lod,
+                    'Fibers/mm²': fibersPerMm2,
+                    'Fibers/cc': fibersPerCc,
+                    Result: result
+                };
+             } else {
+                 currentSample = {}; // Don't allow adding error results
+                 alert("Calculation Error: Could not calculate results. Check Volume and Fields values.");
+             }
+        }
+
+        function handleAddSample() {
+            if (!currentSample || Object.keys(currentSample).length === 0) {
+                alert("Warning: No valid sample data calculated. Please 'Check Sample' first or ensure the last check was successful.");
+                return;
+            }
+
+            // Add a copy to the main list
+            sampleList.push({...currentSample});
+            updateSampleTable();
+
+            // Clear current sample state and reset result display
+            currentSample = {};
+            fibersMm2Result.textContent = 'Fibers/mm²: -';
+            fibersCcResult.textContent = 'Fibers/cc: -';
+            resultEvaluation.textContent = 'Sample evaluation: Pending';
+            resultEvaluation.className = 'result-pending';
+
+            // Optionally clear form fields for next entry
+            // sampleNameInput.value = '';
+            // sampleLocationInput.value = '';
+            // volumeInput.value = '';
+            // fibersInput.value = '';
+            // fieldsInput.value = '';
+            // sampleDateInput.valueAsDate = new Date(); // Reset date to today?
+            // lodInput.value = defaultLod.toString(); // Reset LOD
+            // if (changeLodCheckbox.checked) { changeLodCheckbox.click(); } // Uncheck LOD checkbox
+
+             // Give focus back to the first input field for faster data entry
+             sampleNameInput.focus();
+        }
+
+        function handleRemoveSample() {
+            const checkboxes = sampleTableBody.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert("Warning: No samples selected for removal.");
+                return;
+            }
+
+            // Get the IDs of the samples to remove (convert dataset string to number for comparison)
+            const idsToRemove = Array.from(checkboxes).map(cb => parseFloat(cb.dataset.id));
+
+            // Filter out the samples to remove
+            sampleList = sampleList.filter(sample => !idsToRemove.includes(sample.id));
+
+            updateSampleTable(); // Re-render the table
+        }
+
+        function toggleLodInput() {
+            if (changeLodCheckbox.checked) {
+                lodInput.readOnly = false;
+                lodInput.focus(); // Optional: focus the input
+                lodInput.select(); // Optional: select text
+            } else {
+                lodInput.readOnly = true;
+                lodInput.value = defaultLod.toString(); // Reset to default
+            }
+        }
+
+        // --- DOM Manipulation ---
+        function updateSampleTable() {
+            // Clear existing table rows
+            sampleTableBody.innerHTML = '';
+
+            // Optionally sort samples for display (e.g., by Name)
+            // const displaySamples = [...sampleList].sort((a, b) => a.Sample.localeCompare(b.Sample));
+             const displaySamples = sampleList; // Keep insertion order for now
+
+            // Populate table
+            if (displaySamples.length === 0) {
+                const row = sampleTableBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 11; // Span all columns
+                cell.textContent = "No samples added yet.";
+                cell.style.textAlign = "center";
+                cell.style.padding = "20px";
+                cell.style.color = "#6c757d";
+            } else {
+                displaySamples.forEach(sample => {
+                    const row = sampleTableBody.insertRow();
+                    // Use template literals for cleaner HTML generation
+                    row.innerHTML = `
+                        <td><input type="checkbox" data-id="${sample.id}"></td>
+                        <td>${sample.Sample}</td>
+                        <td>${sample.Location}</td>
+                        <td>${formatDate(sample.Date)}</td>
+                        <td>${sample['Volume (L)']}</td>
+                        <td>${sample.Fibers}</td>
+                        <td>${sample.Fields}</td>
+                        <td>${sample['LOD (fib/cc)']}</td>
+                        <td>${sample['Fibers/mm²']}</td>
+                        <td>${sample['Fibers/cc'].toFixed(4)}</td>
+                        <td>${sample.Result}</td>
+                    `;
+                    // Optionally add styling based on result
+                    if (sample.Result === 'Fail') {
+                         row.style.backgroundColor = 'rgba(220, 53, 69, 0.1)'; // Light red background for Fail rows
+                         // row.cells[10].style.fontWeight = 'bold';
+                         // row.cells[10].style.color = '#dc3545';
+                    } else if (sample.Result === 'Pass') {
+                        // row.cells[10].style.color = '#28a745';
+                    }
+                });
+            }
+        }
+
+        // --- Initial Setup ---
+        function initializeApp() {
+            // Set default date to today
+            try {
+                sampleDateInput.valueAsDate = new Date();
+            } catch (e) {
+                 console.warn("Could not set default date", e);
+                 // Fallback if valueAsDate is not supported or fails
+                 const today = new Date();
+                 const yyyy = today.getFullYear();
+                 const mm = String(today.getMonth() + 1).padStart(2, '0');
+                 const dd = String(today.getDate()).padStart(2, '0');
+                 sampleDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+
+
+            // Attach Event Listeners
+            changeLodCheckbox.addEventListener('change', toggleLodInput);
+            checkButton.addEventListener('click', handleCheckSample);
+            addButton.addEventListener('click', handleAddSample);
+            removeButton.addEventListener('click', handleRemoveSample);
+
+             // Allow pressing Enter in the last input field to trigger 'Check Sample'
+             fieldsInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                     event.preventDefault(); // Prevent default form submission if any
+                     checkButton.click(); // Trigger the check button click
+                 }
+             });
+
+
+            // Initial render of the (empty) table
+            updateSampleTable();
+        }
+
+        // Run initialization when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+</body>
+</html>
